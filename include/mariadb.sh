@@ -105,9 +105,9 @@ Install_MariaDB_5()
 {
     if [ "${Bin}" = "y" ]; then
         Echo_Blue "[+] Installing ${Mariadb_Ver} Using Generic Binaries..."
-        Tar_Cd ${Mariadb_Ver}-linux-systemd-${DB_ARCH}.tar.gz
+        Tar_Cd ${Mariadb_Ver}-linux-${DB_ARCH}.tar.gz
         mkdir /usr/local/mariadb
-        mv ${Mariadb_Ver}-linux-systemd-${DB_ARCH}/* /usr/local/mariadb/
+        mv ${Mariadb_Ver}-linux-${DB_ARCH}/* /usr/local/mariadb/
     else
         Echo_Blue "[+] Installing ${Mariadb_Ver} Using Source code..."
         Tar_Cd ${Mariadb_Ver}.tar.gz ${Mariadb_Ver}

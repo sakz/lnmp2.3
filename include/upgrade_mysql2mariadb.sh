@@ -126,14 +126,19 @@ Upgrade_MySQL2MariaDB()
     cd ${cur_dir}/src
     if [ "${Bin}" = "y" ]; then
         MariaDB_FileName="mariadb-${mariadb_version}-linux-systemd-${DB_ARCH}"
+        MariaDB_Bin_Dir="bintar-linux-systemd-${DB_ARCH}"
     else
         MariaDB_FileName="mariadb-${mariadb_version}"
+        MariaDB_Bin_Dir="source"
     fi
     if [ -s ${MariaDB_FileName}.tar.gz ]; then
         echo "${MariaDB_FileName}.tar.gz [found]"
     else
         echo "Notice: ${MariaDB_FileName}.tar.gz not found!!!download now......"
-        Download_Files https://downloads.mariadb.org/rest-api/mariadb/${mariadb_version}/${MariaDB_FileName}.tar.gz ${MariaDB_FileName}.tar.gz
+        Download_Files https://archive.mariadb.org/mariadb/${mariadb_version}/${MariaDB_Bin_Dir}/${MariaDB_FileName}.tar.gz ${MariaDB_FileName}.tar.gz
+        if [ $? -ne 0 ]; then
+            Download_Files https://downloads.mariadb.org/rest-api/mariadb/${mariadb_version}/${MariaDB_FileName}.tar.gz ${MariaDB_FileName}.tar.gz
+        fi
         if [ $? -eq 0 ]; then
             echo "Download ${MariaDB_FileName}.tar.gz successfully!"
         else

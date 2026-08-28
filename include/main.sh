@@ -46,7 +46,8 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                Bin="n"
+                echo "Default install ${DB_Info[1]} Using Generic Binaries."
+                Bin="y"
                 ;;
             esac
         else
@@ -69,13 +70,8 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[2]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[2]} from Source."
-                    Bin="n"
-                fi
+                echo "Default install ${DB_Info[2]} Using Generic Binaries."
+                Bin="y"
                 ;;
             esac
         else
@@ -97,13 +93,8 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[3]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[3]} from Source."
-                    Bin="n"
-                fi
+                echo "Default install ${DB_Info[3]} Using Generic Binaries."
+                Bin="y"
                 ;;
             esac
         else
@@ -125,7 +116,7 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
+                if [[ "${DB_ARCH}" =~ ^(x86_64|aarch64)$ ]]; then
                     echo "Default install ${DB_Info[4]} Using Generic Binaries."
                     Bin="y"
                 else
@@ -154,7 +145,7 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
+                if [ "${DB_ARCH}" = "x86_64" ]; then
                     echo "Default install ${DB_Info[5]} Using Generic Binaries."
                     Bin="y"
                 else
@@ -183,7 +174,7 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
+                if [ "${DB_ARCH}" = "x86_64" ]; then
                     echo "Default install ${DB_Info[6]} Using Generic Binaries."
                     Bin="y"
                 else
@@ -212,7 +203,7 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
+                if [ "${DB_ARCH}" = "x86_64" ]; then
                     echo "Default install ${DB_Info[7]} Using Generic Binaries."
                     Bin="y"
                 else
@@ -241,13 +232,8 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
-                    echo "Default install ${DB_Info[8]} Using Generic Binaries."
-                    Bin="y"
-                else
-                    echo "Default install ${DB_Info[8]} from Source."
-                    Bin="n"
-                fi
+                echo "Default install ${DB_Info[8]} Using Generic Binaries."
+                Bin="y"
                 ;;
             esac
         else
@@ -270,7 +256,7 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
+                if [ "${DB_ARCH}" = "x86_64" ]; then
                     echo "Default install ${DB_Info[9]} Using Generic Binaries."
                     Bin="y"
                 else
@@ -299,7 +285,7 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
+                if [[ "${DB_ARCH}" =~ ^(x86_64|aarch64)$ ]]; then
                     echo "Default install ${DB_Info[10]} Using Generic Binaries."
                     Bin="y"
                 else
@@ -328,7 +314,7 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
+                if [ "${DB_ARCH}" = "x86_64" ]; then
                     echo "Default install ${DB_Info[11]} Using Generic Binaries."
                     Bin="y"
                 else
@@ -357,7 +343,7 @@ Database_Selection()
                 Bin="n"
                 ;;
             *)
-                if [ "${CheckMirror}" != "n" ]; then
+                if [ "${DB_ARCH}" = "x86_64" ]; then
                     echo "Default install ${DB_Info[12]} Using Generic Binaries."
                     Bin="y"
                 else
@@ -852,11 +838,138 @@ Verify_Download_File()
     Echo_Green "${FileName} SHA256 checksum ok."
 }
 
+#Map the lnmp mirror URL to the official upstream download URL(s).
+#Returns one candidate URL per line; empty output means no official source known.
+Get_Official_Url()
+{
+    local URL=$1
+    local File="${URL##*/}"
+    local Path="${URL#${Download_Mirror}}"
+    local Ver=""
+
+    case "${Path}" in
+    #Nginx
+    /web/nginx/nginx-*.tar.gz)
+        printf '%s\n' "https://nginx.org/download/${File}" ;;
+    /web/nginx/ngx-fancyindex-*)
+        Ver="${File%.tar.xz}"; Ver="${Ver#ngx-fancyindex-}"
+        printf '%s\n' "https://github.com/aperezdc/ngx-fancyindex/releases/download/v${Ver}/${File}" ;;
+    #OpenSSL
+    /lib/openssl/openssl-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#openssl-}"; Ver=$(echo "${Ver}" | sed 's/[a-z]*$//')
+        printf '%s\n%s\n' "https://www.openssl.org/source/${File}" "https://www.openssl.org/source/old/${Ver}/${File}" ;;
+    #OpenResty Lua for nginx
+    /lib/lua/luajit2-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#luajit2-}"
+        printf '%s\n' "https://github.com/openresty/luajit2/archive/refs/tags/v${Ver}.tar.gz" ;;
+    /lib/lua/lua-nginx-module-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#lua-nginx-module-}"
+        printf '%s\n' "https://github.com/openresty/lua-nginx-module/archive/refs/tags/v${Ver}.tar.gz" ;;
+    /lib/lua/ngx_devel_kit-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#ngx_devel_kit-}"
+        printf '%s\n' "https://github.com/vision5/ngx_devel_kit/archive/refs/tags/v${Ver}.tar.gz" ;;
+    /lib/lua/lua-resty-core-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#lua-resty-core-}"
+        printf '%s\n' "https://github.com/openresty/lua-resty-core/archive/refs/tags/v${Ver}.tar.gz" ;;
+    /lib/lua/lua-resty-lrucache-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#lua-resty-lrucache-}"
+        printf '%s\n' "https://github.com/openresty/lua-resty-lrucache/archive/refs/tags/v${Ver}.tar.gz" ;;
+    #PCRE
+    /web/pcre/pcre-*)
+        Ver="${File%.tar.bz2}"; Ver="${Ver#pcre-}"
+        printf '%s\n' "https://sourceforge.net/projects/pcre/files/pcre/${Ver}/${File}/download" ;;
+    #Allocators
+    /lib/jemalloc/jemalloc-*)
+        Ver="${File%.tar.bz2}"; Ver="${Ver#jemalloc-}"
+        printf '%s\n' "https://github.com/jemalloc/jemalloc/releases/download/${Ver}/${File}" ;;
+    /lib/tcmalloc/gperftools-*)
+        printf '%s\n' "https://github.com/gperftools/gperftools/releases/download/${File%.tar.gz}/${File}" ;;
+    /lib/libunwind/libunwind-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#libunwind-}"
+        printf '%s\n' "https://github.com/libunwind/libunwind/releases/download/v${Ver}/${File}" ;;
+    #GNU libs
+    /lib/autoconf/autoconf-*)
+        printf '%s\n' "https://ftp.gnu.org/gnu/autoconf/${File}" ;;
+    /web/libiconv/libiconv-*)
+        printf '%s\n' "https://ftp.gnu.org/gnu/libiconv/${File}" ;;
+    #mcrypt family (upstream hosted on SourceForge)
+    /web/libmcrypt/libmcrypt-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#libmcrypt-}"
+        printf '%s\n' "https://sourceforge.net/projects/mcrypt/files/Libmcrypt/${Ver}/${File}/download" ;;
+    /web/mcrypt/mcrypt-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#mcrypt-}"
+        printf '%s\n' "https://sourceforge.net/projects/mcrypt/files/mcrypt/${Ver}/${File}/download" ;;
+    /web/mhash/mhash-*)
+        Ver="${File%.tar.bz2}"; Ver="${Ver#mhash-}"
+        printf '%s\n' "https://sourceforge.net/projects/mhash/files/mhash/${Ver}/${File}/download" ;;
+    #freetype / curl
+    /lib/freetype/freetype-*)
+        printf '%s\n' "https://download.savannah.gnu.org/releases/freetype/${File}" ;;
+    /lib/curl/curl-*)
+        printf '%s\n' "https://curl.se/download/${File}" ;;
+    #ICU
+    /lib/icu4c/icu4c-*)
+        Ver="${File%-src.tgz}"; Ver="${Ver#icu4c-}"; Ver="release-${Ver//_/-}"
+        printf '%s\n' "https://github.com/unicode-org/icu/releases/download/${Ver}/${File}" ;;
+    #Boost
+    /lib/boost/boost_*)
+        Ver="${File%.tar.bz2}"; Ver="${Ver#boost_}"; Ver="${Ver//_/.}"
+        printf '%s\n' "https://archives.boost.io/release/${Ver}/source/${File}" ;;
+    #nghttp2
+    /lib/nghttp2/nghttp2-*)
+        Ver="${File%.tar.xz}"; Ver="${Ver#nghttp2-}"
+        printf '%s\n' "https://github.com/nghttp2/nghttp2/releases/download/v${Ver}/${File}" ;;
+    #libzip
+    /lib/libzip/libzip-*)
+        printf '%s\n' "https://libzip.org/download/${File}" ;;
+    #MySQL source code
+    /datebase/mysql/mysql-*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#mysql-}"; Ver="${Ver%.*}"
+        printf '%s\n%s\n' "https://cdn.mysql.com/Downloads/MySQL-${Ver}/${File}" "https://cdn.mysql.com/archives/mysql-${Ver}/${File}" ;;
+    #phpMyAdmin
+    /datebase/phpmyadmin/phpMyAdmin-*)
+        Ver="${File%-all-languages.tar.xz}"; Ver="${Ver#phpMyAdmin-}"
+        printf '%s\n' "https://files.phpmyadmin.net/phpMyAdmin/${Ver}/${File}" ;;
+    #PHP (EOL versions fall back to the official museum archive)
+    /web/php/php-5.*|/web/php/php-4.*)
+        printf '%s\n%s\n' "https://www.php.net/distributions/${File}" "http://museum.php.net/php5/${File}" ;;
+    /web/php/php-*)
+        printf '%s\n' "https://www.php.net/distributions/${File}" ;;
+    #Apache httpd / apr
+    /web/apache/apr-util-*)
+        printf '%s\n%s\n' "https://dlcdn.apache.org/apr/${File}" "https://archive.apache.org/dist/apr/${File}" ;;
+    /web/apache/apr-*)
+        printf '%s\n%s\n' "https://dlcdn.apache.org/apr/${File}" "https://archive.apache.org/dist/apr/${File}" ;;
+    /web/apache/httpd-*)
+        printf '%s\n%s\n' "https://dlcdn.apache.org/httpd/${File}" "https://archive.apache.org/dist/httpd/${File}" ;;
+    #memcached / libmemcached
+    /web/memcached/*)
+        printf '%s\n' "https://memcached.org/files/${File}" ;;
+    /web/libmemcached/*)
+        Ver="${File%.tar.gz}"; Ver="${Ver#libmemcached-}"
+        printf '%s\n' "https://launchpad.net/libmemcached/1.0/${Ver}/+download/${File}" ;;
+    #ImageMagick / imagick
+    /web/imagemagick/*)
+        printf '%s\n' "https://imagemagick.org/archive/releases/${File}" ;;
+    /web/imagick/*)
+        printf '%s\n' "https://pecl.php.net/get/${File}" ;;
+    #PECL PHP extensions
+    /web/memcache/*|/web/php-memcached/*|/web/swoole/*|/web/sodium/*|/web/opcache/*|/web/apcu/*|/web/apcu_bc/*)
+        printf '%s\n' "https://pecl.php.net/get/${File}" ;;
+    #SourceGuardian (official site hosts current loaders only)
+    /web/sourceguardian/*)
+        printf '%s\n' "https://www.sourceguardian.com/loaders/download/${File}" ;;
+    *)
+        echo "" ;;
+    esac
+}
+
 Download_Files()
 {
     local URL=$1
     local FileName=$2
     local Wget_TLS_Option=""
+    local Try_URL="" Verify_Ret=0
 
     [ "${FileName}" = "" ] && FileName="${URL##*/}"
     [ "${Download_Insecure}" = "y" ] && Wget_TLS_Option="--no-check-certificate"
@@ -864,12 +977,30 @@ Download_Files()
     if [ -s "${FileName}" ]; then
         echo "${FileName} [found]"
         Verify_Download_File "${FileName}"
-    else
-        echo "Notice: ${FileName} not found!!!download now..."
-        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 ${Wget_TLS_Option} "${URL}" -O "${FileName}"
-        [ $? -ne 0 ] && return 1
-        Verify_Download_File "${FileName}"
+        return $?
     fi
+
+    echo "Notice: ${FileName} not found!!!download now..."
+
+    #Try official source URLs first, fall back to the mirror configured in lnmp.conf
+    while read -r Try_URL; do
+        [ -z "${Try_URL}" ] && continue
+        echo "Downloading ${Try_URL} ..."
+        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 ${Wget_TLS_Option} "${Try_URL}" -O "${FileName}"
+        if [ $? -eq 0 ] && [ -s "${FileName}" ]; then
+            Verify_Download_File "${FileName}"
+            Verify_Ret=$?
+            if [ ${Verify_Ret} -eq 0 ]; then
+                return 0
+            fi
+        fi
+        rm -f "${FileName}"
+    done <<EOF
+$(Get_Official_Url "${URL}")
+${URL}
+EOF
+
+    return 1
 }
 
 Tar_Cd()
@@ -1015,12 +1146,15 @@ Remove_StartUp()
 Get_Country()
 {
     if command -v curl >/dev/null 2>&1; then
-        country=`curl -sSk --connect-timeout 30 -m 60 http://ip.vpszt.com/country`
-        if [ $? -ne 0 ]; then
+        country=`curl -sSk --connect-timeout 30 -m 60 http://ip-api.com/line?fields=countryCode`
+        if [ $? -ne 0 ] || [ "${country}" = "" ]; then
             country=`curl -sSk --connect-timeout 30 -m 60 https://ip.vpser.net/country`
         fi
     else
-        country=`wget --timeout=5 -q -O - http://ip.vpszt.com/country`
+        country=`wget --timeout=5 -q -O - http://ip-api.com/line?fields=countryCode`
+        if [ "${country}" = "" ]; then
+            country=`wget --timeout=5 -q -O - https://ip.vpser.net/country`
+        fi
     fi
 }
 

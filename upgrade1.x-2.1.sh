@@ -195,13 +195,13 @@ if [ "${isSSL}" == "ssl" ]; then
             echo "/usr/local/acme.sh/acme.sh [found]"
         else
             cd /tmp
-            [[ -f latest.tar.gz ]] && rm -f latest.tar.gz
-            wget https://soft.vpser.net/lib/acme.sh/latest.tar.gz --prefer-family=IPv4
-            tar zxf latest.tar.gz
+            [[ -f acme.sh-master.tar.gz ]] && rm -f acme.sh-master.tar.gz
+            wget https://github.com/acmesh-official/acme.sh/archive/master.tar.gz -O acme.sh-master.tar.gz --prefer-family=IPv4
+            tar zxf acme.sh-master.tar.gz
             cd acme.sh-*
             ./acme.sh --install --log --home /usr/local/acme.sh --certhome /usr/local/nginx/conf/ssl -m ${email_address}
             cd ..
-            rm -f latest.tar.gz
+            rm -f acme.sh-master.tar.gz
             rm -rf acme.sh-*
             sed -i 's/cat "\$CERT_PATH"$/#cat "\$CERT_PATH"/g' /usr/local/acme.sh/acme.sh
             if command -v yum >/dev/null 2>&1; then
@@ -311,13 +311,13 @@ if [ "${isSSL}" == "ssl" ]; then
             echo "/usr/local/acme.sh/acme.sh [found]"
         else
             cd /tmp
-            [[ -s latest.tar.gz ]] && rm -f latest.tar.gz
-            wget https://soft.vpser.net/lib/acme.sh/latest.tar.gz --prefer-family=IPv4
-            tar zxf latest.tar.gz
+            [[ -s acme.sh-master.tar.gz ]] && rm -f acme.sh-master.tar.gz
+            wget https://github.com/acmesh-official/acme.sh/archive/master.tar.gz -O acme.sh-master.tar.gz --prefer-family=IPv4
+            tar zxf acme.sh-master.tar.gz
             cd acme.sh-*
             ./acme.sh --install --log --home /usr/local/acme.sh --certhome /usr/local/apache/conf/ssl -m ${email_address}
             cd ..
-            rm -f latest.tar.gz
+            rm -f acme.sh-master.tar.gz
             rm -rf acme.sh-*
             sed -i 's/cat "\$CERT_PATH"$/#cat "\$CERT_PATH"/g' /usr/local/acme.sh/acme.sh
             if command -v yum >/dev/null 2>&1; then

@@ -504,7 +504,7 @@ Check_Download()
                 Download_Files https://cdn.mysql.com/archives/mysql-${Mysql_Ver_Short}/${Mysql_Ver}-linux-glibc2.12-${DB_ARCH}.tar.gz ${Mysql_Ver}-linux-glibc2.12-${DB_ARCH}.tar.gz
             fi
         elif [[ "${Bin}" = "y" && "${DBSelect}" = "5" ]]; then
-            [[ "${DB_ARCH}" = "aarch64" ]] && mysql8_glibc_ver="2.17" || mysql8_glibc_ver="2.12"
+            [[ "${DB_ARCH}" = "aarch64" ]] && mysql8_glibc_ver="2.28" || mysql8_glibc_ver="2.12"
             Download_Files https://cdn.mysql.com/Downloads/MySQL-8.0/${Mysql_Ver}-linux-glibc${mysql8_glibc_ver}-${DB_ARCH}.tar.xz ${Mysql_Ver}-linux-glibc${mysql8_glibc_ver}-${DB_ARCH}.tar.xz
             if [ $? -ne 0 ]; then
                 Download_Files https://cdn.mysql.com/archives/mysql-8.0/${Mysql_Ver}-linux-glibc${mysql8_glibc_ver}-${DB_ARCH}.tar.xz ${Mysql_Ver}-linux-glibc${mysql8_glibc_ver}-${DB_ARCH}.tar.xz
@@ -520,9 +520,20 @@ Check_Download()
     elif [[ "${DBSelect}" =~ ^(6|7|8|9|10|12|13)$ ]]; then
         Mariadb_Version=$(echo ${Mariadb_Ver} | cut -d- -f2)
         if [ "${Bin}" = "y" ]; then
-            Download_Files https://downloads.mariadb.org/rest-api/mariadb/${Mariadb_Version}/${Mariadb_Ver}-linux-systemd-${DB_ARCH}.tar.gz ${Mariadb_Ver}-linux-systemd-${DB_ARCH}.tar.gz
+            if [ "${DBSelect}" = "6" ]; then
+                MariaDB_FileName="${Mariadb_Ver}-linux-${DB_ARCH}"
+                MariaDB_Bin_Dir="bintar-linux-x86_64"
+            else
+                MariaDB_FileName="${Mariadb_Ver}-linux-systemd-${DB_ARCH}"
+                MariaDB_Bin_Dir="bintar-linux-systemd-${DB_ARCH}"
+            fi
         else
-            Download_Files https://downloads.mariadb.org/rest-api/mariadb/${Mariadb_Version}/${Mariadb_Ver}.tar.gz ${Mariadb_Ver}.tar.gz
+            MariaDB_FileName="${Mariadb_Ver}"
+            MariaDB_Bin_Dir="source"
+        fi
+        Download_Files https://archive.mariadb.org/mariadb/${Mariadb_Version}/${MariaDB_Bin_Dir}/${MariaDB_FileName}.tar.gz ${MariaDB_FileName}.tar.gz
+        if [ $? -ne 0 ]; then
+            Download_Files https://downloads.mariadb.org/rest-api/mariadb/${Mariadb_Version}/${MariaDB_FileName}.tar.gz ${MariaDB_FileName}.tar.gz
         fi
     fi
     Download_Files ${Download_Mirror}/web/php/${Php_Ver}.tar.bz2 ${Php_Ver}.tar.bz2

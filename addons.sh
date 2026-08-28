@@ -250,18 +250,7 @@ Download_PHP_Src()
         echo "php-${Cur_PHP_Version}.tar.bz2 [found]"
     else
         echo "Notice: php-${Cur_PHP_Version}.tar.bz2 not found!!!download now..."
-        Get_Country
-        if [ "${country}" = "CN" ]; then
-            Download_Files http://php.vpszt.com/php-${Cur_PHP_Version}.tar.bz2 php-${Cur_PHP_Version}.tar.bz2
-            if [ $? -ne 0 ]; then
-                Download_Files https://www.php.net/distributions/php-${Cur_PHP_Version}.tar.bz2 php-${Cur_PHP_Version}.tar.bz2
-            fi
-        else
-            Download_Files https://www.php.net/distributions/php-${Cur_PHP_Version}.tar.bz2 php-${Cur_PHP_Version}.tar.bz2
-            if [ $? -ne 0 ]; then
-                Download_Files http://php.vpszt.com/php-${Cur_PHP_Version}.tar.bz2 php-${Cur_PHP_Version}.tar.bz2
-            fi
-        fi
+        Download_Files https://www.php.net/distributions/php-${Cur_PHP_Version}.tar.bz2 php-${Cur_PHP_Version}.tar.bz2
         if [ $? -eq 0 ]; then
             echo "Download php-${Cur_PHP_Version}.tar.bz2 successfully!"
         else
