@@ -138,7 +138,7 @@ Check_DB_Files()
 Check_PHP_Files()
 {
     isPHP=""
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         if [[ -s /usr/local/php/sbin/php-fpm && -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]]; then
             Echo_Green "PHP: OK"
             Echo_Green "PHP-FPM: OK"
@@ -207,7 +207,7 @@ Clean_PHP_Src_Dir()
 Clean_Web_Src_Dir()
 {
     echo "Clean Web Server src directory..."
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         rm -rf ${cur_dir}/src/${Nginx_Ver}*
     elif [ "${Stack}" = "lnmpa" ]; then
         rm -rf ${cur_dir}/src/${Nginx_Ver}*

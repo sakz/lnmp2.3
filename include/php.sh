@@ -194,7 +194,7 @@ Ln_PHP_Bin()
     ln -sf /usr/local/php/bin/phpize /usr/bin/phpize
     ln -sf /usr/local/php/bin/pear /usr/bin/pear
     ln -sf /usr/local/php/bin/pecl /usr/bin/pecl
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ln -sf /usr/local/php/sbin/php-fpm /usr/bin/php-fpm
     fi
     rm -f /usr/local/php/conf.d/*
@@ -276,7 +276,7 @@ Install_PHP_52()
     Export_PHP_Autoconf
     cd ${cur_dir}/src && rm -rf ${Php_Ver}
     tar jxf ${Php_Ver}.tar.bz2
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         gzip -cd ${Php_Ver}-fpm-0.5.14.diff.gz | patch -d ${Php_Ver} -p1
     fi
     cd ${Php_Ver}/
@@ -285,7 +285,7 @@ Install_PHP_52()
     patch -p1 < ${cur_dir}/src/patch/debian_patches_disable_SSLv2_for_openssl_1_0_0.patch
     patch -p1 < ${cur_dir}/src/patch/php-5.2-multipart-form-data.patch
     ./buildconf --force
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-mysql=${MySQL_Dir} --with-mysqli=${MySQL_Config} --with-pdo-mysql=${MySQL_Dir} --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --enable-discard-path --enable-magic-quotes --enable-safe-mode --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-fastcgi --enable-fpm --enable-force-cgi-redirect --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext --with-mime-magic ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=${MySQL_Dir} --with-mysqli=${MySQL_Config} --with-pdo-mysql=${MySQL_Dir} --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --enable-discard-path --enable-magic-quotes --enable-safe-mode --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext --with-mime-magic ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -325,7 +325,7 @@ zend_extension="/usr/local/zend/ZendOptimizer.so"
 EOF
     fi
 
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         rm -f /usr/local/php/etc/php-fpm.conf
         \cp ${cur_dir}/conf/php-fpm5.2.conf /usr/local/php/etc/php-fpm.conf
         \cp ${cur_dir}/init.d/init.d.php-fpm5.2 /etc/init.d/php-fpm
@@ -339,7 +339,7 @@ Install_PHP_53()
     Check_Curl
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     patch -p1 < ${cur_dir}/src/patch/php-5.3-multipart-form-data.patch
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-magic-quotes --enable-safe-mode --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-magic-quotes --enable-safe-mode --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -390,7 +390,7 @@ EOF
         fi
     fi
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -430,7 +430,7 @@ Install_PHP_54()
 {
     Echo_Blue "[+] Installing ${Php_Ver}..."
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -479,7 +479,7 @@ EOF
         fi
     fi
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -523,7 +523,7 @@ Install_PHP_55()
     if [ "${ARCH}" = "aarch64" ]; then
         patch -p1 < ${cur_dir}/src/patch/php-5.5-5.6-asm-aarch64.patch
     fi
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
        ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -572,7 +572,7 @@ EOF
         fi
     fi
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -619,7 +619,7 @@ Install_PHP_56()
     if command -v pkg-config >/dev/null 2>&1 && pkg-config --modversion icu-i18n | grep -Eqi '^6[1-9]|[7-9][0-9]'; then
         patch -p1 < ${cur_dir}/src/patch/php-5.6-intl.patch
     fi
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -668,7 +668,7 @@ EOF
         fi
     fi
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -711,7 +711,7 @@ Install_PHP_7()
     if command -v pkg-config >/dev/null 2>&1 && pkg-config --modversion icu-i18n | grep -Eqi '^6[1-9]|[7-9][0-9]'; then
         patch -p1 < ${cur_dir}/src/patch/php-7.0-intl.patch
     fi
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -741,7 +741,7 @@ Install_PHP_7()
     echo "Install ZendGuardLoader for PHP 7.0..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -783,7 +783,7 @@ Install_PHP_71()
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     PHP_Openssl3_Patch
     PHP_ICU70_Patch
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -813,7 +813,7 @@ Install_PHP_71()
     echo "Install ZendGuardLoader for PHP 7.1..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -855,7 +855,7 @@ Install_PHP_72()
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     PHP_Openssl3_Patch
     PHP_ICU70_Patch
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --with-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --with-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -885,7 +885,7 @@ Install_PHP_72()
     echo "Install ZendGuardLoader for PHP 7.2..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -927,7 +927,7 @@ Install_PHP_73()
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     PHP_Openssl3_Patch
     PHP_ICU70_Patch
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --with-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --without-libzip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --with-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --without-libzip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -957,7 +957,7 @@ Install_PHP_73()
     echo "Install ZendGuardLoader for PHP 7.3..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -999,7 +999,7 @@ Install_PHP_74()
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     PHP_Openssl3_Patch
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype=/usr/local/freetype --with-jpeg --with-png --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --with-zip --without-libzip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype=/usr/local/freetype --with-jpeg --with-png --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --with-zip --without-libzip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -1029,7 +1029,7 @@ Install_PHP_74()
     echo "Install ZendGuardLoader for PHP 7.4..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -1071,7 +1071,7 @@ Install_PHP_80()
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
     PHP_Openssl3_Patch
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -1101,7 +1101,7 @@ Install_PHP_80()
     echo "Install ZendGuardLoader for PHP 8.0..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -1142,7 +1142,7 @@ Install_PHP_81()
     Install_Libzip
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -1172,7 +1172,7 @@ Install_PHP_81()
     echo "Install ZendGuardLoader for PHP 8.1..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -1213,7 +1213,7 @@ Install_PHP_82()
     Install_Libzip
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -1243,7 +1243,7 @@ Install_PHP_82()
     echo "Install ZendGuardLoader for PHP 8.2..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]
@@ -1284,7 +1284,7 @@ Install_PHP_83()
     Install_Libzip
     Echo_Blue "[+] Installing ${Php_Ver}"
     Tar_Cd ${Php_Ver}.tar.bz2 ${Php_Ver}
-    if [ "${Stack}" = "lnmp" ]; then
+    if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --enable-fpm --with-fpm-user=www --with-fpm-group=www --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
@@ -1314,7 +1314,7 @@ Install_PHP_83()
     echo "Install ZendGuardLoader for ${Php_Ver}..."
     echo "unavailable now."
 
-if [ "${Stack}" = "lnmp" ]; then
+if [[ "${Stack}" != "lnmpa" && "${Stack}" != "lamp" ]]; then
     echo "Creating new php-fpm configure file..."
     cat >/usr/local/php/etc/php-fpm.conf<<EOF
 [global]

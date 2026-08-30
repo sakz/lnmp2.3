@@ -593,11 +593,11 @@ Install_Libmcrypt()
 {
     Echo_Blue "[+] Installing ${LibMcrypt_Ver}"
     Tar_Cd ${LibMcrypt_Ver}.tar.gz ${LibMcrypt_Ver}
-    CFLAGS="-Wno-error=implicit-function-declaration ${CFLAGS}" ./configure
+    CFLAGS="-Wno-error=implicit-function-declaration -Wno-error=implicit-int ${CFLAGS}" ./configure
     Make_Install
     /sbin/ldconfig
     cd libltdl/
-    CFLAGS="-Wno-error=implicit-function-declaration ${CFLAGS}" ./configure --enable-ltdl-install
+    CFLAGS="-Wno-error=implicit-function-declaration -Wno-error=implicit-int ${CFLAGS}" ./configure --enable-ltdl-install
     Make_Install
     ln -sf /usr/local/lib/libmcrypt.la /usr/lib/libmcrypt.la
     ln -sf /usr/local/lib/libmcrypt.so /usr/lib/libmcrypt.so
@@ -612,7 +612,7 @@ Install_Mcrypt()
 {
     Echo_Blue "[+] Installing ${Mcypt_Ver}"
     Tar_Cd ${Mcypt_Ver}.tar.gz ${Mcypt_Ver}
-    CFLAGS="-Wno-error=implicit-function-declaration ${CFLAGS}" ./configure
+    CFLAGS="-Wno-error=implicit-function-declaration -Wno-error=implicit-int ${CFLAGS}" ./configure
     Make_Install
     cd ${cur_dir}/src/
     rm -rf ${cur_dir}/src/${Mcypt_Ver}
