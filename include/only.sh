@@ -273,3 +273,59 @@ Install_Only_Database()
     Press_Install
     Install_Database 2>&1 | tee /root/install_database.log
 }
+
+PHP_Dependent()
+{
+    if [ "$PM" = "yum" ]; then
+        for packages in make gcc gcc-c++ wget curl autoconf automake re2c openssl openssl-devel zlib zlib-devel bzip2 bzip2-devel libcurl-devel libjpeg-devel libpng-devel libXpm-devel libxml2-devel libicu-devel oniguruma-devel sqlite-devel pkg-config libzip-devel xz gzip ca-certificates;
+        do yum -y install $packages; done
+    elif [ "$PM" = "apt" ]; then
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -y
+        [[ $? -ne 0 ]] && apt-get update --allow-releaseinfo-change -y
+        for packages in debian-keyring debian-archive-keyring build-essential gcc g++ make autoconf automake re2c wget curl openssl libssl-dev zlib1g zlib1g-dev libbz2-dev libcurl4-openssl-dev libjpeg-dev libpng-dev libxml2-dev libicu-dev libonig-dev libsqlite3-dev libsasl2-dev pkg-config libzip-dev bzip2 xz-utils gzip ca-certificates;
+        do apt-get --no-install-recommends install -y $packages; done
+    fi
+}
+
+Install_Only_PHP()
+{
+    clear
+    echo "+-----------------------------------------------------------------------+"
+    echo "|              Install PHP for LNMP, Written by Licess                  |"
+    echo "+-----------------------------------------------------------------------+"
+    echo "|                      A tool to only install PHP.                      |"
+    echo "+-----------------------------------------------------------------------+"
+    echo "|           For more information please visit https://lnmp.org          |"
+    echo "+-----------------------------------------------------------------------+"
+
+    Get_Dist_Name
+    PHP_Selection
+    Check_PHP_Option
+    Press_Install
+    Echo_Blue "Install dependent packages..."
+    cd ${cur_dir}/src
+    Get_Dist_Version
+    PHP_Dependent
+    Disable_Selinux
+    Check_Download
+    Install_Libiconv
+    Install_Libmcrypt
+    Install_Mhash
+    Install_Mcrypt
+    Install_Freetype
+    Install_Pcre
+    Install_Icu4c
+    if [ "$PM" = "yum" ]; then
+        CentOS_Lib_Opt
+    elif [ "$PM" = "apt" ]; then
+        Deb_Lib_Opt
+    fi
+    Install_PHP
+    LNMP_PHP_Opt
+    StartUp php-fpm
+    StartOrStop start php-fpm
+    Clean_PHP_Src_Dir
+    Creat_PHP_Tools
+    Check_LNMP_Install
+}

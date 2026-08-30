@@ -593,11 +593,11 @@ Install_Libmcrypt()
 {
     Echo_Blue "[+] Installing ${LibMcrypt_Ver}"
     Tar_Cd ${LibMcrypt_Ver}.tar.gz ${LibMcrypt_Ver}
-    ./configure
+    CFLAGS="-Wno-error=implicit-function-declaration ${CFLAGS}" ./configure
     Make_Install
     /sbin/ldconfig
     cd libltdl/
-    ./configure --enable-ltdl-install
+    CFLAGS="-Wno-error=implicit-function-declaration ${CFLAGS}" ./configure --enable-ltdl-install
     Make_Install
     ln -sf /usr/local/lib/libmcrypt.la /usr/lib/libmcrypt.la
     ln -sf /usr/local/lib/libmcrypt.so /usr/lib/libmcrypt.so
@@ -612,7 +612,7 @@ Install_Mcrypt()
 {
     Echo_Blue "[+] Installing ${Mcypt_Ver}"
     Tar_Cd ${Mcypt_Ver}.tar.gz ${Mcypt_Ver}
-    ./configure
+    CFLAGS="-Wno-error=implicit-function-declaration ${CFLAGS}" ./configure
     Make_Install
     cd ${cur_dir}/src/
     rm -rf ${cur_dir}/src/${Mcypt_Ver}
@@ -1022,6 +1022,19 @@ Deb_Lib_Opt()
 
     if [ -d /usr/include/aarch64-linux-gnu/curl ]; then
         ln -sf /usr/include/aarch64-linux-gnu/curl /usr/include/
+    fi
+
+    #Debian 13/Ubuntu 24.04+: libaio soname renamed to libaio.so.1t64, link back for binary databases
+    if [ -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64 ] && [ ! -s /usr/lib/x86_64-linux-gnu/libaio.so.1 ]; then
+        ln -sf /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/x86_64-linux-gnu/libaio.so.1
+    fi
+
+    #Provide libtinfo.so.5/libncurses.so.5 for older binary databases (e.g. MySQL 5.x)
+    if [ -s /usr/lib/x86_64-linux-gnu/libtinfo.so.6 ]; then
+        ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
+    fi
+    if [ -s /usr/lib/x86_64-linux-gnu/libncurses.so.6 ]; then
+        ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
     fi
 
     ldconfig

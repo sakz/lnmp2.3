@@ -904,7 +904,8 @@ Get_Official_Url()
         printf '%s\n' "https://sourceforge.net/projects/mhash/files/mhash/${Ver}/${File}/download" ;;
     #freetype / curl
     /lib/freetype/freetype-*)
-        printf '%s\n' "https://download.savannah.gnu.org/releases/freetype/${File}" ;;
+        Ver="${File%.tar.xz}"; Ver="${Ver%.tar.bz2}"; Ver="${Ver#freetype-}"
+        printf '%s\n%s\n' "https://download.savannah.gnu.org/releases/freetype/${File}" "https://sourceforge.net/projects/freetype/files/freetype2/${Ver}/${File}/download" ;;
     /lib/curl/curl-*)
         printf '%s\n' "https://curl.se/download/${File}" ;;
     #ICU
@@ -985,8 +986,13 @@ Download_Files()
     #Try official source URLs first, fall back to the mirror configured in lnmp.conf
     while read -r Try_URL; do
         [ -z "${Try_URL}" ] && continue
+        #Skip TLS verification for the mirror fallback (mirror certificate may be expired)
+        Mirror_TLS_Option=""
+        if [[ "${Try_URL}" == ${Download_Mirror}* ]]; then
+            Mirror_TLS_Option="--no-check-certificate"
+        fi
         echo "Downloading ${Try_URL} ..."
-        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 ${Wget_TLS_Option} "${Try_URL}" -O "${FileName}"
+        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 ${Wget_TLS_Option} ${Mirror_TLS_Option} "${Try_URL}" -O "${FileName}"
         if [ $? -eq 0 ] && [ -s "${FileName}" ]; then
             Verify_Download_File "${FileName}"
             Verify_Ret=$?

@@ -213,27 +213,27 @@ Install_Composer()
         local Composer_Wget_TLS_Option=""
         [ "${Download_Insecure}" = "y" ] && Composer_Wget_TLS_Option="--no-check-certificate"
         if echo "${PHPSelect}" | grep -Eqi '^[1-8]' || echo "${php_version}" | grep -Eqi '^5.[2-6].*|7.[0-2].*' || echo "${Php_Ver}" | grep -Eqi "php-5.[2-6].*|php-7.[0-2].*"; then
-            wget --progress=dot:giga --prefer-family=IPv4 ${Composer_Wget_TLS_Option} -T 120 -t3 ${Download_Mirror}/web/php/composer/composer-2.2.phar -O /usr/local/bin/composer
+            curl -sS --connect-timeout 30 -m 60 https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --2.2
             if [ $? -eq 0 ]; then
                 echo "Composer install successfully."
-                chmod +x /usr/local/bin/composer
             else
-                echo "Composer install failed, try to from composer official website..."
-                curl -sS --connect-timeout 30 -m 60 https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --2.2
+                echo "Composer install failed, try to from the mirror..."
+                wget --progress=dot:giga --prefer-family=IPv4 --no-check-certificate ${Composer_Wget_TLS_Option} -T 120 -t3 ${Download_Mirror}/web/php/composer/composer-2.2.phar -O /usr/local/bin/composer
                 if [ $? -eq 0 ]; then
                     echo "Composer install successfully."
+                    chmod +x /usr/local/bin/composer
                 fi
             fi
         else
-            wget --progress=dot:giga --prefer-family=IPv4 ${Composer_Wget_TLS_Option} -T 120 -t3 https://mirrors.aliyun.com/composer/composer.phar -O /usr/local/bin/composer
+            curl -sS --connect-timeout 30 -m 60 https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
             if [ $? -eq 0 ]; then
                 echo "Composer install successfully."
-                chmod +x /usr/local/bin/composer
             else
-                echo "Composer install failed, try to from composer official website..."
-                curl -sS --connect-timeout 30 -m 60 https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+                echo "Composer install failed, try to from the mirror..."
+                wget --progress=dot:giga --prefer-family=IPv4 --no-check-certificate ${Composer_Wget_TLS_Option} -T 120 -t3 https://mirrors.aliyun.com/composer/composer.phar -O /usr/local/bin/composer
                 if [ $? -eq 0 ]; then
                     echo "Composer install successfully."
+                    chmod +x /usr/local/bin/composer
                 fi
             fi
         fi

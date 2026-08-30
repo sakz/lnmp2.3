@@ -234,9 +234,12 @@ case "${Stack}" in
     mphp)
         Install_Multiplephp
         ;;
+    php)
+        Install_Only_PHP 2>&1 | tee /root/php-install.log
+        ;;
     *)
         Echo_Red "Usage: $0 {lnmp|lnmpa|lamp}"
-        Echo_Red "Usage: $0 {nginx|db|mphp}"
+        Echo_Red "Usage: $0 {nginx|db|php|mphp}"
         ;;
 esac
 
