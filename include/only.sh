@@ -327,5 +327,16 @@ Install_Only_PHP()
     StartOrStop start php-fpm
     Clean_PHP_Src_Dir
     Creat_PHP_Tools
-    Check_LNMP_Install
+    Check_PHP_Files
+    if [ "${isPHP}" = "ok" ]; then
+        Echo_Green "Install ${Php_Ver} completed! enjoy it."
+        if [ ! -s /bin/lnmp ]; then
+            \cp ${cur_dir}/conf/lnmp /bin/lnmp
+            chmod +x /bin/lnmp
+            StartUp nginx
+            StartUp mysql
+        fi
+    else
+        Echo_Red "Install PHP ${Php_Ver} failed, please check /root/php-install.log"
+    fi
 }
