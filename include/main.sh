@@ -992,7 +992,7 @@ Download_Files()
             Mirror_TLS_Option="--no-check-certificate"
         fi
         echo "Downloading ${Try_URL} ..."
-        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 ${Wget_TLS_Option} ${Mirror_TLS_Option} "${Try_URL}" -O "${FileName}"
+        wget -c --progress=dot -e dotbytes=20M --prefer-family=IPv4 --connect-timeout=15 ${Wget_TLS_Option} ${Mirror_TLS_Option} "${Try_URL}" -O "${FileName}"
         if [ $? -eq 0 ] && [ -s "${FileName}" ]; then
             Verify_Download_File "${FileName}"
             Verify_Ret=$?
