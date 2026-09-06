@@ -424,7 +424,7 @@ PHP_Selection()
     if [ -z ${PHPSelect} ]; then
         echo "==========================="
 
-        PHPSelect="14"
+        PHPSelect="15"
         Echo_Yellow "You have 16 options for your PHP install."
         echo "1: Install ${PHP_Info[0]}"
         echo "2: Install ${PHP_Info[1]}"
@@ -439,8 +439,8 @@ PHP_Selection()
         echo "11: Install ${PHP_Info[10]}"
         echo "12: Install ${PHP_Info[11]}"
         echo "13: Install ${PHP_Info[12]}"
-        echo "14: Install ${PHP_Info[13]} (Default)"
-        echo "15: Install ${PHP_Info[14]}"
+        echo "14: Install ${PHP_Info[13]}"
+        echo "15: Install ${PHP_Info[14]} (Default)"
         echo "16: Install ${PHP_Info[15]}"
         read -p "Enter your choice (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16): " PHPSelect
     fi
