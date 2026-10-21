@@ -139,20 +139,47 @@ Install_PHP_Dependent()
     ldconfig
 }
 
+Get_Cur_PHP_Apache_Module()
+{
+    if echo "${Cur_PHP_Version}" | grep -Eqi '^5.'; then
+        echo "libphp5.so"
+    elif echo "${Cur_PHP_Version}" | grep -Eqi '^7.'; then
+        echo "libphp7.so"
+    else
+        echo "libphp.so"
+    fi
+}
+
 Upgrade_Cutover_Start()
 {
+    if [ -e /usr/local/oldphp${Upgrade_Date} ]; then
+        Echo_Red "Backup directory /usr/local/oldphp${Upgrade_Date} already exists, aborting before cutover."
+        exit 1
+    fi
     if [ "${Stack}" = "lnmp" ]; then
         /etc/init.d/php-fpm stop
-        mv /usr/local/php /usr/local/oldphp${Upgrade_Date}
-        mv /etc/init.d/php-fpm /usr/local/oldphp${Upgrade_Date}/init.d.php-fpm.bak.${Upgrade_Date}
+        if ! mv /usr/local/php /usr/local/oldphp${Upgrade_Date}; then
+            Echo_Red "Failed to move /usr/local/php to /usr/local/oldphp${Upgrade_Date}, aborting before cutover."
+            /etc/init.d/php-fpm start
+            exit 1
+        fi
+        if [ -s /etc/init.d/php-fpm ]; then
+            mv /etc/init.d/php-fpm /usr/local/oldphp${Upgrade_Date}/init.d.php-fpm.bak.${Upgrade_Date}
+        fi
     else
         /etc/init.d/httpd stop
-        if echo "${Cur_PHP_Version}" | grep -Eqi '^7.';then
-            mv /usr/local/apache/modules/libphp7.so /usr/local/apache/modules/libphp7.so.bak.${Upgrade_Date}
-        else
-            mv /usr/local/apache/modules/libphp5.so /usr/local/apache/modules/libphp5.so.bak.${Upgrade_Date}
+        Cur_PHP_Module=$(Get_Cur_PHP_Apache_Module)
+        if [ -s /usr/local/apache/modules/${Cur_PHP_Module} ]; then
+            mv /usr/local/apache/modules/${Cur_PHP_Module} /usr/local/apache/modules/${Cur_PHP_Module}.bak.${Upgrade_Date}
         fi
-        mv /usr/local/php /usr/local/oldphp${Upgrade_Date}
+        if ! mv /usr/local/php /usr/local/oldphp${Upgrade_Date}; then
+            Echo_Red "Failed to move /usr/local/php to /usr/local/oldphp${Upgrade_Date}, aborting before cutover."
+            if [ -s /usr/local/apache/modules/${Cur_PHP_Module}.bak.${Upgrade_Date} ]; then
+                mv /usr/local/apache/modules/${Cur_PHP_Module}.bak.${Upgrade_Date} /usr/local/apache/modules/${Cur_PHP_Module}
+            fi
+            /etc/init.d/httpd start
+            exit 1
+        fi
         \cp /usr/local/apache/conf/httpd.conf /usr/local/apache/conf/httpd.conf.bak.${Upgrade_Date}
         if echo "${Cur_PHP_Version}" | grep -Eqi '^7.' && echo "${php_version}" | grep -Eqi '^5.';then
             sed -i '/libphp7.so/d' /usr/local/apache/conf/httpd.conf
@@ -162,23 +189,41 @@ Upgrade_Cutover_Start()
 
 Upgrade_Cutover_Rollback()
 {
+    if [ ! -d /usr/local/oldphp${Upgrade_Date} ]; then
+        Echo_Red "Backup directory /usr/local/oldphp${Upgrade_Date} not found, cannot roll back automatically."
+        Echo_Red "Please restore /usr/local/php manually."
+        exit 1
+    fi
     if [ "${Stack}" = "lnmp" ]; then
         /etc/init.d/php-fpm stop
         rm -rf /usr/local/php
-        mv /usr/local/oldphp${Upgrade_Date} /usr/local/php
-        mv /usr/local/php/init.d.php-fpm.bak.${Upgrade_Date} /etc/init.d/php-fpm
-        /etc/init.d/php-fpm start
+        if ! mv /usr/local/oldphp${Upgrade_Date} /usr/local/php; then
+            Echo_Red "Failed to restore /usr/local/php from /usr/local/oldphp${Upgrade_Date}."
+            exit 1
+        fi
+        if [ -s /usr/local/php/init.d.php-fpm.bak.${Upgrade_Date} ]; then
+            mv /usr/local/php/init.d.php-fpm.bak.${Upgrade_Date} /etc/init.d/php-fpm
+        fi
+        if ! /etc/init.d/php-fpm start; then
+            Echo_Red "php-fpm failed to start after rollback, please check manually."
+            exit 1
+        fi
     else
         /etc/init.d/httpd stop
         rm -rf /usr/local/php
-        mv /usr/local/oldphp${Upgrade_Date} /usr/local/php
-        \cp /usr/local/apache/conf/httpd.conf.bak.${Upgrade_Date} /usr/local/apache/conf/httpd.conf
-        if echo "${Cur_PHP_Version}" | grep -Eqi '^7.';then
-            mv /usr/local/apache/modules/libphp7.so.bak.${Upgrade_Date} /usr/local/apache/modules/libphp7.so
-        else
-            mv /usr/local/apache/modules/libphp5.so.bak.${Upgrade_Date} /usr/local/apache/modules/libphp5.so
+        if ! mv /usr/local/oldphp${Upgrade_Date} /usr/local/php; then
+            Echo_Red "Failed to restore /usr/local/php from /usr/local/oldphp${Upgrade_Date}."
+            exit 1
         fi
-        /etc/init.d/httpd start
+        \cp /usr/local/apache/conf/httpd.conf.bak.${Upgrade_Date} /usr/local/apache/conf/httpd.conf
+        Cur_PHP_Module=$(Get_Cur_PHP_Apache_Module)
+        if [ -s /usr/local/apache/modules/${Cur_PHP_Module}.bak.${Upgrade_Date} ]; then
+            mv /usr/local/apache/modules/${Cur_PHP_Module}.bak.${Upgrade_Date} /usr/local/apache/modules/${Cur_PHP_Module}
+        fi
+        if ! /etc/init.d/httpd start; then
+            Echo_Red "httpd failed to start after rollback, please check manually."
+            exit 1
+        fi
     fi
     Echo_Red "Rollback completed, old PHP ${Cur_PHP_Version} restored."
     exit 1
@@ -218,6 +263,11 @@ Upgrade_Cutover_End()
         Echo_Green "======== upgrade php completed ======"
     else
         Echo_Red "======== upgrade php failed, rolling back ======"
+        if [ "${Stack}" = "lnmp" ]; then
+            Echo_Red "upgrade php log: /root/upgrade_lnmp_php${Upgrade_Date}.log"
+        else
+            Echo_Red "upgrade php log: /root/upgrade_a_php${Upgrade_Date}.log"
+        fi
         Upgrade_Cutover_Rollback
     fi
 }
