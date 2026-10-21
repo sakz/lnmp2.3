@@ -558,13 +558,23 @@ Make_Install()
     make install
 }
 
-PHP_Make_Install()
+PHP_Make()
 {
     make ZEND_EXTRA_LIBS='-liconv' -j `grep 'processor' /proc/cpuinfo | wc -l`
     if [ $? -ne 0 ]; then
         make ZEND_EXTRA_LIBS='-liconv'
     fi
+}
+
+PHP_Install()
+{
     make install
+}
+
+PHP_Make_Install()
+{
+    PHP_Make
+    PHP_Install
 }
 
 Install_Autoconf()

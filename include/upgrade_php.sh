@@ -49,23 +49,6 @@ Start_Upgrade_PHP()
     if echo "${php_version}" | grep -Eqi '^5.2.';then
         Download_Files ${Download_Mirror}/web/phpfpm/php-${php_version}-fpm-0.5.14.diff.gz php-${php_version}-fpm-0.5.14.diff.gz
     fi
-    lnmp stop
-
-    if [ "${Stack}" = "lnmp" ]; then
-        mv /usr/local/php /usr/local/oldphp${Upgrade_Date}
-        mv /etc/init.d/php-fpm /usr/local/oldphp${Upgrade_Date}/init.d.php-fpm.bak.${Upgrade_Date}
-    else
-        if echo "${Cur_PHP_Version}" | grep -Eqi '^7.';then
-            mv /usr/local/apache/modules/libphp7.so /usr/local/apache/modules/libphp7.so.bak.${Upgrade_Date}
-        else
-            mv /usr/local/apache/modules/libphp5.so /usr/local/apache/modules/libphp5.so.bak.${Upgrade_Date}
-        fi
-        mv /usr/local/php /usr/local/oldphp${Upgrade_Date}
-        \cp /usr/local/apache/conf/httpd.conf /usr/local/apache/conf/httpd.conf.bak.${Upgrade_Date}
-        if echo "${Cur_PHP_Version}" | grep -Eqi '^7.' && echo "${php_version}" | grep -Eqi '^5.';then
-            sed -i '/libphp7.so/d' /usr/local/apache/conf/httpd.conf
-        fi
-    fi
     Check_PHP_Option
     Install_PHP_Dependent
     Check_Openssl
@@ -156,43 +139,86 @@ Install_PHP_Dependent()
     ldconfig
 }
 
-Check_PHP_Upgrade_Files()
+Upgrade_Cutover_Start()
 {
-    Echo_LNMPA_Upgrade_PHP_Failed()
-    {
-        Echo_Red "======== upgrade php failed ======"
-        Echo_Red "upgrade php log: /root/upgrade_a_php${Upgrade_Date}.log"
-        echo "You upload upgrade_a_php.log to LNMP Forum for help."    
-    }
-    rm -rf ${cur_dir}/src/php-${php_version}
     if [ "${Stack}" = "lnmp" ]; then
-        if [[ -s /usr/local/php/sbin/php-fpm && -s /etc/init.d/php-fpm && -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]]; then
-            Echo_Green "======== upgrade php completed ======"
+        /etc/init.d/php-fpm stop
+        mv /usr/local/php /usr/local/oldphp${Upgrade_Date}
+        mv /etc/init.d/php-fpm /usr/local/oldphp${Upgrade_Date}/init.d.php-fpm.bak.${Upgrade_Date}
+    else
+        /etc/init.d/httpd stop
+        if echo "${Cur_PHP_Version}" | grep -Eqi '^7.';then
+            mv /usr/local/apache/modules/libphp7.so /usr/local/apache/modules/libphp7.so.bak.${Upgrade_Date}
         else
-            Echo_Red "======== upgrade php failed ======"
-            Echo_Red "upgrade php log: /root/upgrade_lnmp_php${Upgrade_Date}.log"
-            echo "You upload upgrade_lnmp_php.log to LNMP Forum for help."
+            mv /usr/local/apache/modules/libphp5.so /usr/local/apache/modules/libphp5.so.bak.${Upgrade_Date}
+        fi
+        mv /usr/local/php /usr/local/oldphp${Upgrade_Date}
+        \cp /usr/local/apache/conf/httpd.conf /usr/local/apache/conf/httpd.conf.bak.${Upgrade_Date}
+        if echo "${Cur_PHP_Version}" | grep -Eqi '^7.' && echo "${php_version}" | grep -Eqi '^5.';then
+            sed -i '/libphp7.so/d' /usr/local/apache/conf/httpd.conf
+        fi
+    fi
+}
+
+Upgrade_Cutover_Rollback()
+{
+    if [ "${Stack}" = "lnmp" ]; then
+        /etc/init.d/php-fpm stop
+        rm -rf /usr/local/php
+        mv /usr/local/oldphp${Upgrade_Date} /usr/local/php
+        mv /usr/local/php/init.d.php-fpm.bak.${Upgrade_Date} /etc/init.d/php-fpm
+        /etc/init.d/php-fpm start
+    else
+        /etc/init.d/httpd stop
+        rm -rf /usr/local/php
+        mv /usr/local/oldphp${Upgrade_Date} /usr/local/php
+        \cp /usr/local/apache/conf/httpd.conf.bak.${Upgrade_Date} /usr/local/apache/conf/httpd.conf
+        if echo "${Cur_PHP_Version}" | grep -Eqi '^7.';then
+            mv /usr/local/apache/modules/libphp7.so.bak.${Upgrade_Date} /usr/local/apache/modules/libphp7.so
+        else
+            mv /usr/local/apache/modules/libphp5.so.bak.${Upgrade_Date} /usr/local/apache/modules/libphp5.so
+        fi
+        /etc/init.d/httpd start
+    fi
+    Echo_Red "Rollback completed, old PHP ${Cur_PHP_Version} restored."
+    exit 1
+}
+
+Upgrade_Cutover_End()
+{
+    rm -rf ${cur_dir}/src/php-${php_version}
+
+    local php_start_ok="y"
+    if [ "${Stack}" = "lnmp" ]; then
+        if ! /etc/init.d/php-fpm start; then
+            php_start_ok="n"
         fi
     else
-        if echo "${php_version}" | grep -Eqi '^7.';then
-            if [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/modules/libphp7.so && -s /usr/local/apache/conf/httpd.conf ]]; then
-                Echo_Green "======== upgrade php completed ======"
-            else
-                Echo_LNMPA_Upgrade_PHP_Failed
-            fi
-        elif echo "${php_version}" | grep -Eqi '^8.';then
-            if [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/modules/libphp.so && -s /usr/local/apache/conf/httpd.conf ]]; then
-                Echo_Green "======== upgrade php completed ======"
-            else
-                Echo_LNMPA_Upgrade_PHP_Failed
-            fi
-        else
-            if [[ -s /usr/local/apache/modules/libphp5.so && -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]]; then
-                Echo_Green "======== upgrade php completed ======"
-            else
-                Echo_LNMPA_Upgrade_PHP_Failed
-            fi
+        if ! /etc/init.d/httpd start; then
+            php_start_ok="n"
         fi
+    fi
+
+    local php_upgrade_ok="y"
+    if [ "${php_start_ok}" = "n" ]; then
+        php_upgrade_ok="n"
+    elif [ "${Stack}" = "lnmp" ]; then
+        [[ -s /usr/local/php/sbin/php-fpm && -s /etc/init.d/php-fpm && -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]] || php_upgrade_ok="n"
+    else
+        if echo "${php_version}" | grep -Eqi '^8.';then
+            [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/modules/libphp.so && -s /usr/local/apache/conf/httpd.conf ]] || php_upgrade_ok="n"
+        elif echo "${php_version}" | grep -Eqi '^7.';then
+            [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/modules/libphp7.so && -s /usr/local/apache/conf/httpd.conf ]] || php_upgrade_ok="n"
+        else
+            [[ -s /usr/local/apache/modules/libphp5.so && -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]] || php_upgrade_ok="n"
+        fi
+    fi
+
+    if [ "${php_upgrade_ok}" = "y" ]; then
+        Echo_Green "======== upgrade php completed ======"
+    else
+        Echo_Red "======== upgrade php failed, rolling back ======"
+        Upgrade_Cutover_Rollback
     fi
 }
 
@@ -219,7 +245,14 @@ Upgrade_PHP_52()
     else
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=${MySQL_Dir} --with-mysqli=${MySQL_Config} --with-pdo-mysql=${MySQL_Dir} --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --enable-discard-path --enable-magic-quotes --enable-safe-mode --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext --with-mime-magic ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-dist /usr/local/php/etc/php.ini
@@ -261,8 +294,7 @@ EOF
         chmod +x /etc/init.d/php-fpm
         LNMP_PHP_Opt
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_53()
@@ -276,7 +308,14 @@ Upgrade_PHP_53()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-magic-quotes --enable-safe-mode --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -355,8 +394,7 @@ EOF
     LNMP_PHP_Opt
 fi
 
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_54()
@@ -369,7 +407,14 @@ Upgrade_PHP_54()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -448,8 +493,7 @@ EOF
     LNMP_PHP_Opt
 fi
 
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_556()
@@ -468,7 +512,14 @@ Upgrade_PHP_556()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --enable-intl --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -557,8 +608,7 @@ EOF
     LNMP_PHP_Opt
 fi
 
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_7()
@@ -578,7 +628,14 @@ Upgrade_PHP_7()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --with-mcrypt --enable-ftp --with-gd --enable-gd-native-ttf ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -639,8 +696,7 @@ fi
     if [ "${Stack}" != "lnmp" ]; then
         sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_72()
@@ -655,7 +711,14 @@ Upgrade_PHP_72()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --with-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -716,8 +779,7 @@ fi
     if [ "${Stack}" != "lnmp" ]; then
         sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_73()
@@ -732,7 +794,14 @@ Upgrade_PHP_73()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --with-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --enable-zip --without-libzip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -793,8 +862,7 @@ fi
     if [ "${Stack}" != "lnmp" ]; then
         sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_74()
@@ -809,7 +877,14 @@ Upgrade_PHP_74()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv-dir --with-freetype=/usr/local/freetype --with-jpeg --with-png --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-xmlrpc --with-zip --without-libzip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -870,8 +945,7 @@ fi
     if [ "${Stack}" != "lnmp" ]; then
         sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_80()
@@ -886,7 +960,14 @@ Upgrade_PHP_80()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -948,8 +1029,7 @@ fi
         sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
         sed -i '/^LoadModule php7_module/d' /usr/local/apache/conf/httpd.conf
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_81()
@@ -963,7 +1043,14 @@ Upgrade_PHP_81()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -1025,8 +1112,7 @@ fi
         sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
         sed -i '/^LoadModule php7_module/d' /usr/local/apache/conf/httpd.conf
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_82()
@@ -1040,7 +1126,14 @@ Upgrade_PHP_82()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -1102,8 +1195,7 @@ fi
         sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
         sed -i '/^LoadModule php7_module/d' /usr/local/apache/conf/httpd.conf
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_83()
@@ -1117,7 +1209,14 @@ Upgrade_PHP_83()
         ./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-config-file-scan-dir=/usr/local/php/conf.d --with-apxs2=/usr/local/apache/bin/apxs --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-iconv=/usr/local --with-freetype=/usr/local/freetype --with-jpeg --with-zlib --enable-xml --disable-rpath --enable-bcmath --enable-shmop --enable-sysvsem ${with_curl} --enable-mbregex --enable-mbstring --enable-intl --enable-pcntl --enable-ftp --enable-gd ${with_openssl} --with-mhash --enable-pcntl --enable-sockets --with-zip --enable-soap --with-gettext ${with_fileinfo} --enable-opcache --with-xsl --with-pear --with-webp ${PHP_Buildin_Option} ${PHP_Modules_Options}
     fi
 
-    PHP_Make_Install
+    PHP_Make
+    if [ $? -ne 0 ]; then
+        Echo_Red "PHP compile (make) failed, aborting before cutover."
+        Echo_Red "No services were stopped and PHP was not changed."
+        exit 1
+    fi
+    Upgrade_Cutover_Start
+    PHP_Install
 
     Ln_PHP_Bin
 
@@ -1179,8 +1278,7 @@ fi
         sed -i '/^LoadModule php5_module/d' /usr/local/apache/conf/httpd.conf
         sed -i '/^LoadModule php7_module/d' /usr/local/apache/conf/httpd.conf
     fi
-    lnmp start
-    Check_PHP_Upgrade_Files
+    Upgrade_Cutover_End
 }
 
 Upgrade_PHP_84()
