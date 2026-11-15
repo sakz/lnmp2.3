@@ -620,9 +620,6 @@ EOF
         fi
     fi
 
-    echo "Download Opcache Control Panel..."
-    \cp ${cur_dir}/conf/ocp.php /home/wwwroot/default/ocp.php
-
 if [ "${Stack}" = "lnmp" ]; then
     echo "Creating new php-fpm configure file......"
     cat >/usr/local/php/etc/php-fpm.conf<<EOF

@@ -1387,25 +1387,8 @@ LNMP_PHP_Opt()
 
 Creat_PHP_Tools()
 {
-    echo "Create PHP Info Tool..."
-    cat >${Default_Website_Dir}/phpinfo.php<<eof
-<?php
-phpinfo();
-?>
-eof
+    # 安全加固: 默认站点只安装 phpMyAdmin, 不放 index.html/探针/phpinfo 等任何文件, 直接访问 IP 返回 403
 
-    echo "Copy PHP Prober..."
-    cd ${cur_dir}/src
-    tar zxf p.tar.gz
-    \cp p.php ${Default_Website_Dir}/p.php
-
-    \cp ${cur_dir}/conf/index.html ${Default_Website_Dir}/index.html
-    \cp ${cur_dir}/conf/lnmp.gif ${Default_Website_Dir}/lnmp.gif
-
-    if [ ${PHPSelect} -ge 4 ]; then
-        echo "Copy Opcache Control Panel..."
-        \cp ${cur_dir}/conf/ocp.php ${Default_Website_Dir}/ocp.php
-    fi
     echo "============================Install PHPMyAdmin================================="
     [[ -d ${Default_Website_Dir}/phpmyadmin ]] && rm -rf ${Default_Website_Dir}/phpmyadmin
     tar Jxf ${PhpMyAdmin_Ver}.tar.xz

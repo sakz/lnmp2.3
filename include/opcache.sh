@@ -82,8 +82,6 @@ EOF
         exit 1
     fi
 
-    echo "Copy Opcache Control Panel..."
-    \cp ${cur_dir}/conf/ocp.php ${Default_Website_Dir}/ocp.php
     Restart_PHP
     if [ -s "${zend_ext}" ]; then
         Echo_Green "====== Opcache install completed ======"

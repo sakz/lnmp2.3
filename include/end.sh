@@ -235,8 +235,6 @@ Print_Sucess_Info()
     echo "|    lnmp status manage: lnmp {start|stop|reload|restart|kill|status}    |"
     echo "+------------------------------------------------------------------------+"
     echo "|  phpMyAdmin: http://IP/phpmyadmin/                                     |"
-    echo "|  phpinfo: http://IP/phpinfo.php                                        |"
-    echo "|  Prober:  http://IP/p.php                                              |"
     echo "+------------------------------------------------------------------------+"
     echo "|  Add VirtualHost: lnmp vhost add                                       |"
     echo "+------------------------------------------------------------------------+"
